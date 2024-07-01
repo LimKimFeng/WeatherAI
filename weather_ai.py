@@ -11,6 +11,7 @@ TIME_NOW = "sekarang"
 TIME_TODAY = "hari ini"
 TIME_TOMORROW = "besok"
 TIME_DAY_AFTER_TOMORROW = "lusa"
+TIME_DAY_YESTERDAY = "kemarin"
 
 class Ui_WelcomeWindow(object):
     def setupUi(self, WelcomeWindow):
@@ -155,7 +156,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 print("City (regex):", city)
 
         for token in doc:
-            if token.text.lower() in ["sekarang", "hari ini", "besok", "lusa"]:
+            if token.text.lower() in ["sekarang", "hari ini", "besok", "lusa", "kemarin"]:
                 time = token.text.lower()
                 print("Time:", time)
             if token.text.lower() == "cuaca":
@@ -177,7 +178,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.chat.append(f"AI: Maaf, saya hanya dapat memberikan informasi cuaca.")
 
         self.user_input.clear()
-
 
     def random_city(self):
         cities = [
@@ -213,7 +213,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def get_weather_forecast(self, city, time=None) -> str:
         OPENWEATHER_API_KEY = "a97e71de587fcd767a39af05b1be15c6"
-        if time in [TIME_NOW, TIME_TODAY, None]:
+        if time in [TIME_NOW, TIME_TODAY, TIME_DAY_YESTERDAY, None]:
             OPENWEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather"
         else:
             OPENWEATHER_API_URL = "http://api.openweathermap.org/data/2.5/forecast"
@@ -238,11 +238,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return f"Gagal mendapatkan data cuaca. Status code: {response.status_code}"
 
     def parse_weather_data(self, data, time):
-        if time in [TIME_NOW, TIME_TODAY, None]:
+        if time in [TIME_NOW, TIME_TODAY, TIME_DAY_YESTERDAY, None]:
             city = data['name']
             weather = data['weather'][0]['description']
             temperature = data['main']['temp']
-            forecast = f"Cuaca di {city} adalah {weather} dengan suhu {temperature}°C"
+            if time == TIME_DAY_YESTERDAY:
+                forecast = f"Cuaca di {city} kemarin adalah {weather} dengan suhu {temperature}°C"
+            else:
+                forecast = f"Cuaca di {city} adalah {weather} dengan suhu {temperature}°C"
         else:
             city = data['city']['name']
             target_date = self.get_target_date(time)
@@ -261,6 +264,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return datetime.now() + timedelta(days=1)
         elif time == TIME_DAY_AFTER_TOMORROW:
             return datetime.now() + timedelta(days=2)
+        elif time == TIME_DAY_YESTERDAY:
+            return datetime.now() - timedelta(days=1)
         else:
             return datetime.now()
 
