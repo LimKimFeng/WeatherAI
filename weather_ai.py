@@ -287,4 +287,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = WelcomeWindow()
     window.show()
+    print("Python module:", sys.modules)
+    print("Python version:", sys.version)
+    print("Python platform:", sys.platform)
     sys.exit(app.exec_())
